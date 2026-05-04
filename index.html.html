@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard KPIs — Crazy Imagine Software 2026</title>
+<style>
+:root {
+  --ci-dark: #1a2535;
+  --ci-green: #b6e226;
+  --ci-green-dark: #8aaa14;
+  --ci-navy: #243044;
+  --ci-bg: #111c2a;
+  --ci-card: #1e2d40;
+  --ci-text: #e8edf2;
+  --ci-muted: #8fa3b8;
+  --ci-border: rgba(182,226,38,0.25);
+  --ci-input-bg: rgba(255,255,255,0.07);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--ci-bg);
+  color: var(--ci-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
+  padding: 24px 16px;
+}
+.container { max-width: 900px; margin: 0 auto; }
+
+.header {
+  background: var(--ci-dark);
+  border-radius: 14px;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  border: 1px solid var(--ci-border);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.header-left { display: flex; align-items: center; gap: 14px; }
+.logo-wrap {
+  width: 44px; height: 44px;
+  background: var(--ci-green);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo-wrap svg { width: 32px; height: 32px; }
+.header h1 { font-size: 16px; font-weight: 600; color: var(--ci-text); }
+.header p { font-size: 12px; color: var(--ci-muted); margin-top: 3px; }
+.month-select {
+  background: var(--ci-input-bg);
+  border: 1px solid var(--ci-border);
+  border-radius: 8px;
+  color: var(--ci-text);
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.tabs {
+  display: flex; gap: 6px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.tab {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--ci-border);
+  background: var(--ci-dark);
+  color: var(--ci-muted);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  user-select: none;
+}
+.tab.active { background: var(--ci-green); color: var(--ci-dark); font-weight: 600; border-color: var(--ci-green); }
+.tab:hover:not(.active) { color: var(--ci-text); border-color: rgba(182,226,38,0.5); }
+
+.section { display: none; }
+.section.active { display: block; }
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.stat-card {
+  background: var(--ci-dark);
+  border: 1px solid var(--ci-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.stat-label { font-size: 10px; color: var(--ci-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
+.stat-value { font-size: 24px; font-weight: 600; color: var(--ci-green); }
+.stat-sub { font-size: 10px; color: var(--ci-muted); margin-top: 3px; }
+
+.card {
+  background: var(--ci-dark);
+  border: 1px solid var(--ci-border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+}
+.card h3 {
+  font-size: 11px; font-weight: 600;
+  color: var(--ci-green);
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+
+.kpi-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.kpi-table th {
+  text-align: left; color: var(--ci-muted);
+  font-weight: 400; font-size: 10px;
+  text-transform: uppercase;
+  padding: 0 8px 8px;
+  border-bottom: 1px solid var(--ci-border);
+}
+.kpi-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  vertical-align: middle;
+}
+.kpi-table tr:last-child td { border-bottom: none; }
+.kpi-table input[type=number],
+.kpi-table input[type=text] {
+  background: var(--ci-input-bg);
+  border: 1px solid var(--ci-border);
+  border-radius: 6px;
+  color: var(--ci-text);
+  padding: 5px 8px;
+  width: 100%;
+  font-size: 12px;
+}
+.kpi-table input:focus { outline: none; border-color: var(--ci-green); }
+.kpi-table select {
+  background: var(--ci-input-bg);
+  border: 1px solid var(--ci-border);
+  border-radius: 6px;
+  color: var(--ci-text);
+  padding: 5px 8px;
+  font-size: 12px;
+  width: 100%;
+}
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+.badge-ok   { background: rgba(57,197,120,.15); color: #39c578; }
+.badge-warn { background: rgba(245,166,35,.15);  color: #f5a623; }
+.badge-bad  { background: rgba(240,68,56,.15);   color: #f04438; }
+.badge-na   { background: rgba(143,163,184,.15); color: #8fa3b8; }
+.badge-info { background: rgba(182,226,38,.12);  color: #b6e226; }
+
+.row-label { color: var(--ci-text); font-size: 13px; }
+.row-note  { font-size: 10px; color: var(--ci-muted); margin-top: 2px; }
+
+/* Tareas */
+.tasks-list { display: flex; flex-direction: column; gap: 7px; }
+.task-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--ci-border);
+  background: var(--ci-input-bg);
+}
+.task-check {
+  width: 17px; height: 17px;
+  border-radius: 4px;
+  border: 1.5px solid var(--ci-border);
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  appearance: none; -webkit-appearance: none;
+  position: relative;
+  transition: all .15s;
+}
+.task-check:checked { background: var(--ci-green); border-color: var(--ci-green); }
+.task-check:checked::after {
+  content: '✓';
+  position: absolute; top: -1px; left: 2px;
+  font-size: 11px; color: var(--ci-dark); font-weight: 700;
+}
+.task-text { font-size: 12px; color: var(--ci-text); flex: 1; }
+.task-text.done { color: var(--ci-muted); text-decoration: line-through; }
+.task-tag { font-size: 10px; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+.tag-rrhh { background: rgba(110,130,255,.2); color: #8e9fff; }
+.tag-ops  { background: rgba(182,226,38,.15); color: #b6e226; }
+.tag-dev  { background: rgba(57,197,120,.15); color: #39c578; }
+
+.add-task-row { display: flex; gap: 8px; margin-top: 10px; }
+.add-task-row input {
+  flex: 1;
+  background: var(--ci-input-bg);
+  border: 1px solid var(--ci-border);
+  border-radius: 8px;
+  color: var(--ci-text);
+  padding: 8px 12px; font-size: 13px;
+}
+.add-task-row input:focus { outline: none; border-color: var(--ci-green); }
+.add-task-row select {
+  background: var(--ci-input-bg);
+  border: 1px solid var(--ci-border);
+  border-radius: 8px;
+  color: var(--ci-text);
+  padding: 8px 10px; font-size: 12px;
+}
+.btn-add {
+  background: var(--ci-green); border: none;
+  border-radius: 8px; color: var(--ci-dark);
+  font-weight: 600; font-size: 13px;
+  padding: 8px 16px; cursor: pointer;
+}
+.btn-add:hover { background: var(--ci-green-dark); }
+
+.progress-bar { height: 5px; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; margin-top: 5px; }
+.progress-fill { height: 100%; background: var(--ci-green); border-radius: 3px; transition: width .3s; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width: 580px){ .two-col { grid-template-columns: 1fr; } }
+
+.notes-area {
+  width: 100%;
+  background: var(--ci-input-bg);
+  border: 1px solid var(--ci-border);
+  border-radius: 8px;
+  color: var(--ci-text);
+  padding: 10px 12px;
+  font-size: 13px;
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+.notes-area:focus { outline: none; border-color: var(--ci-green); }
+
+/* Resumen especial */
+.res-block {
+  background: var(--ci-dark);
+  border: 1px solid var(--ci-border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+}
+.res-section-title {
+  font-size: 10px; font-weight: 600;
+  color: var(--ci-green);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--ci-border);
+}
+.res-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,.03);
+}
+.res-row:last-child { border-bottom: none; }
+.res-key { font-size: 12px; color: var(--ci-muted); }
+.res-val { font-size: 12px; color: var(--ci-text); font-weight: 500; text-align: right; }
+
+.hint { font-size: 10px; color: var(--ci-muted); font-style: italic; margin-bottom: 10px; }
+
+.print-btn {
+  background: transparent;
+  border: 1px solid var(--ci-border);
+  color: var(--ci-muted);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 0;
+}
+.print-btn:hover { color: var(--ci-text); border-color: rgba(182,226,38,.5); }
+
+@media print {
+  body { background: white; color: #111; padding: 0; }
+  .tabs, .add-task-row, .print-btn, .month-select { display: none !important; }
+  .section { display: block !important; page-break-before: always; }
+  .section:first-child { page-break-before: avoid; }
+  .header { background: #f5f5f5; border: 1px solid #ddd; }
+  .card, .res-block, .stat-card { background: #f9f9f9; border: 1px solid #ddd; }
+  .stat-value { color: #5a8a00; }
+  .ci-text { color: #111; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-wrap">
+        <!-- Crazy Imagine C logo simplified SVG -->
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="4" width="10" height="10" fill="#1a2535"/>
+          <rect x="28" y="4" width="10" height="10" fill="#1a2535"/>
+          <rect x="10" y="34" width="10" height="10" fill="#1a2535"/>
+          <rect x="28" y="34" width="10" height="10" fill="#1a2535"/>
+          <rect x="4" y="10" width="10" height="10" fill="#1a2535"/>
+          <rect x="34" y="10" width="10" height="10" fill="#1a2535"/>
+          <rect x="4" y="28" width="10" height="10" fill="#1a2535"/>
+          <rect x="34" y="28" width="10" height="10" fill="#1a2535"/>
+          <ellipse cx="24" cy="24" rx="10" ry="13" fill="#1a2535"/>
+          <ellipse cx="24" cy="24" rx="6" ry="9" fill="#b6e226"/>
+          <text x="24" y="29" text-anchor="middle" font-size="13" font-weight="700" fill="#1a2535" font-family="Arial,sans-serif">C</text>
+        </svg>
+      </div>
+      <div>
+        <h1>Dashboard de KPIs — Reunión Mensual</h1>
+        <p>Crazy Imagine Software &nbsp;·&nbsp; Operaciones &amp; RRHH &nbsp;·&nbsp; 2026</p>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <select class="month-select" id="monthSelect" onchange="updateResumen()">
+        <option>Enero 2026</option><option>Febrero 2026</option><option>Marzo 2026</option>
+        <option>Abril 2026</option><option selected>Mayo 2026</option><option>Junio 2026</option>
+        <option>Julio 2026</option><option>Agosto 2026</option><option>Septiembre 2026</option>
+        <option>Octubre 2026</option><option>Noviembre 2026</option><option>Diciembre 2026</option>
+      </select>
+      <button class="print-btn" onclick="window.print()">Imprimir / PDF</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('resumen')">Resumen</div>
+    <div class="tab" onclick="switchTab('clientes')">Clientes</div>
+    <div class="tab" onclick="switchTab('upwork')">Upwork</div>
+    <div class="tab" onclick="switchTab('rrhh')">RRHH</div>
+    <div class="tab" onclick="switchTab('tareas')">Tareas</div>
+  </div>
+
+  <!-- ===== RESUMEN ===== -->
+  <div class="section active" id="tab-resumen">
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total clientes</div>
+        <div class="stat-value" id="sum-clientes">29</div>
+        <div class="stat-sub">Base actual</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Crecimiento %</div>
+        <div class="stat-value" id="sum-crecimiento">—</div>
+        <div class="stat-sub">Acumulado 2026</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Crecimiento neto</div>
+        <div class="stat-value" id="sum-neto">—</div>
+        <div class="stat-sub">vs inicio de año</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tareas completadas</div>
+        <div class="stat-value" id="sum-tareas">0%</div>
+        <div class="stat-sub" id="sum-tareas-detail">0 de 0</div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Vacantes abiertas</div>
+        <div class="stat-value" id="sum-vacantes">3</div>
+        <div class="stat-sub">En búsqueda activa</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Conversión Upwork</div>
+        <div class="stat-value" id="sum-conv">—</div>
+        <div class="stat-sub">Meta: ≥ 10%</div>
+      </div>
+    </div>
+
+    <div class="res-block">
+      <div class="res-section-title">Clientes</div>
+      <div class="res-row"><span class="res-key">Clientes inicio del año (Q1)</span><span class="res-val" id="r-q1base">29</span></div>
+      <div class="res-row"><span class="res-key">Clientes actuales</span><span class="res-val" id="r-current">29</span></div>
+      <div class="res-row"><span class="res-key">Nuevos Q1</span><span class="res-val" id="r-q1new">—</span></div>
+      <div class="res-row"><span class="res-key">Perdidos Q1</span><span class="res-val" id="r-q1lost">—</span></div>
+      <div class="res-row"><span class="res-key">Nuevos Q2</span><span class="res-val" id="r-q2new">—</span></div>
+      <div class="res-row"><span class="res-key">Perdidos Q2</span><span class="res-val" id="r-q2lost">—</span></div>
+      <div class="res-row"><span class="res-key">Crecimiento neto total</span><span class="res-val" id="r-neto">—</span></div>
+      <div class="res-row"><span class="res-key">Crecimiento % acumulado</span><span class="res-val" id="r-crec">—</span></div>
+      <div class="res-row"><span class="res-key">Canal principal (Q actual)</span><span class="res-val" id="r-canal">—</span></div>
+    </div>
+
+    <div class="res-block">
+      <div class="res-section-title">Upwork — mes actual</div>
+      <div class="res-row"><span class="res-key">Total gasto</span><span class="res-val" id="r-gasto">—</span></div>
+      <div class="res-row"><span class="res-key">Costo por aplicación</span><span class="res-val" id="r-cpa">—</span></div>
+      <div class="res-row"><span class="res-key">Costo por entrevista</span><span class="res-val" id="r-cpe">—</span></div>
+      <div class="res-row"><span class="res-key">Tasa de conversión</span><span class="res-val" id="r-conv">—</span></div>
+      <div class="res-row"><span class="res-key">% Boosts del total</span><span class="res-val" id="r-boosts">—</span></div>
+      <div class="res-row"><span class="res-key">Promedio connects/app</span><span class="res-val" id="r-connects">—</span></div>
+    </div>
+
+    <div class="res-block">
+      <div class="res-section-title">RRHH</div>
+      <div class="res-row"><span class="res-key">Vacante Manager RRHH</span><span class="res-val" id="r-vacante-rrhh"><span class="badge badge-warn">En búsqueda</span></span></div>
+      <div class="res-row"><span class="res-key">Vacante Rob</span><span class="res-val" id="r-vacante-rob"><span class="badge badge-warn">En búsqueda</span></span></div>
+      <div class="res-row"><span class="res-key">Vacante Scalater (A. Hurtado)</span><span class="res-val" id="r-vacante-scalater"><span class="badge badge-na">Seguimiento</span></span></div>
+      <div class="res-row"><span class="res-key">Renovación contrato Sra. Doris</span><span class="res-val" id="r-doris"><span class="badge badge-warn">Pendiente</span></span></div>
+      <div class="res-row"><span class="res-key">Kipo actualizado</span><span class="res-val" id="r-kipo"><span class="badge badge-warn">Pendiente</span></span></div>
+      <div class="res-row"><span class="res-key">Programa apoyo psicológico</span><span class="res-val" id="r-pap"><span class="badge badge-ok">Activo</span></span></div>
+      <div class="res-row"><span class="res-key">Sesiones psicológicas (mes)</span><span class="res-val" id="r-sesiones">—</span></div>
+      <div class="res-row"><span class="res-key">Solicitudes colaboradores</span><span class="res-val" id="r-solicitudes">—</span></div>
+    </div>
+
+    <div class="res-block">
+      <div class="res-section-title">Tareas del mes</div>
+      <div id="r-tasks-list"><span style="font-size:11px;color:var(--ci-muted);">Ve a la pestaña Tareas para ver el listado.</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Notas y acuerdos de la reunión</h3>
+      <textarea class="notes-area" placeholder="Escribe aquí los comentarios y acuerdos de la reunión..." style="min-height:100px;"></textarea>
+    </div>
+    <p class="hint">Los datos del resumen se actualizan automáticamente al llenar las otras secciones.</p>
+  </div>
+
+  <!-- ===== CLIENTES ===== -->
+  <div class="section" id="tab-clientes">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">Inicio año (Q1)</div><div class="stat-value" id="c-base-disp">29</div><div class="stat-sub">Base 2026</div></div>
+      <div class="stat-card"><div class="stat-label">Actuales</div><div class="stat-value" id="c-actuales-disp">29</div><div class="stat-sub">Hoy</div></div>
+      <div class="stat-card"><div class="stat-label">Ganados Q2</div><div class="stat-value" id="c-ganados-disp">—</div><div class="stat-sub">Este trimestre</div></div>
+      <div class="stat-card"><div class="stat-label">Crecimiento</div><div class="stat-value" id="c-crec-disp">—</div><div class="stat-sub">Acumulado 2026</div></div>
+    </div>
+
+    <div class="card">
+      <h3>Base inicial del año</h3>
+      <table class="kpi-table">
+        <tbody>
+          <tr><td class="row-label">Clientes al inicio del año (Q1 2026)</td><td style="width:130px"><input type="number" id="base-clientes" value="29" oninput="recalcClientes()"></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Clientes por trimestre — 2026</h3>
+      <table class="kpi-table">
+        <thead><tr><th>Trimestre</th><th>Nuevos</th><th>Perdidos</th><th>Neto</th><th>%</th></tr></thead>
+        <tbody>
+          <tr><td class="row-label">Q1</td><td><input type="number" id="q1-new" value="0" oninput="recalcClientes()"></td><td><input type="number" id="q1-lost" value="0" oninput="recalcClientes()"></td><td id="q1-net">0</td><td id="q1-pct">0.00%</td></tr>
+          <tr><td class="row-label">Q2</td><td><input type="number" id="q2-new" placeholder="—" oninput="recalcClientes()"></td><td><input type="number" id="q2-lost" placeholder="—" oninput="recalcClientes()"></td><td id="q2-net">—</td><td id="q2-pct">—</td></tr>
+          <tr><td class="row-label">Q3</td><td><input type="number" id="q3-new" placeholder="—" oninput="recalcClientes()"></td><td><input type="number" id="q3-lost" placeholder="—" oninput="recalcClientes()"></td><td id="q3-net">—</td><td id="q3-pct">—</td></tr>
+          <tr><td class="row-label">Q4</td><td><input type="number" id="q4-new" placeholder="—" oninput="recalcClientes()"></td><td><input type="number" id="q4-lost" placeholder="—" oninput="recalcClientes()"></td><td id="q4-net">—</td><td id="q4-pct">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Canal de adquisición (trimestre actual)</h3>
+      <table class="kpi-table">
+        <thead><tr><th>Canal</th><th>Clientes nuevos</th></tr></thead>
+        <tbody>
+          <tr><td class="row-label">Referencia directa</td><td><input type="number" id="src-ref" placeholder="0" oninput="updateResumen()"></td></tr>
+          <tr><td class="row-label">Upwork</td><td><input type="number" id="src-upwork" placeholder="0" oninput="updateResumen()"></td></tr>
+          <tr><td class="row-label">Correo electrónico</td><td><input type="number" id="src-email" placeholder="0" oninput="updateResumen()"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== UPWORK ===== -->
+  <div class="section" id="tab-upwork">
+    <div class="card">
+      <h3>Estadísticas mensuales — Upwork 2026</h3>
+      <table class="kpi-table">
+        <thead><tr><th>Indicador</th><th>Valor</th><th>Meta</th><th>Evaluación</th></tr></thead>
+        <tbody>
+          <tr><td><div class="row-label">Total gasto ($)</div></td><td><input type="number" id="uw-gasto" placeholder="0.00" oninput="evalUpwork()"></td><td><span style="font-size:10px;color:var(--ci-muted);">—</span></td><td id="ev-gasto"><span class="badge badge-na">Sin datos</span></td></tr>
+          <tr><td><div class="row-label">Costo por aplicación ($)</div></td><td><input type="number" id="uw-cpa" placeholder="0.00" oninput="evalUpwork()"></td><td><span style="font-size:10px;color:var(--ci-muted);">≤ $5</span></td><td id="ev-cpa"><span class="badge badge-na">Sin datos</span></td></tr>
+          <tr><td><div class="row-label">Costo por entrevista ($)</div></td><td><input type="number" id="uw-cpe" placeholder="0.00" oninput="evalUpwork()"></td><td><span style="font-size:10px;color:var(--ci-muted);">—</span></td><td id="ev-cpe"><span class="badge badge-na">Sin datos</span></td></tr>
+          <tr><td><div class="row-label">Tasa de conversión (%)</div></td><td><input type="number" id="uw-conv" placeholder="0" oninput="evalUpwork()"></td><td><span style="font-size:10px;color:var(--ci-muted);">≥ 10%</span></td><td id="ev-conv"><span class="badge badge-na">Sin datos</span></td></tr>
+          <tr><td><div class="row-label">% Boosts del total</div></td><td><input type="number" id="uw-boosts" placeholder="0" oninput="evalUpwork()"></td><td><span style="font-size:10px;color:var(--ci-muted);">≤ 30%</span></td><td id="ev-boosts"><span class="badge badge-na">Sin datos</span></td></tr>
+          <tr><td><div class="row-label">Promedio connects/app</div></td><td><input type="number" id="uw-connects" placeholder="0" oninput="evalUpwork()"></td><td><span style="font-size:10px;color:var(--ci-muted);">30–50 prom</span></td><td id="ev-connects"><span class="badge badge-na">Sin datos</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Recursos activos — Meta: 2 apps diarias por recurso</h3>
+      <table class="kpi-table">
+        <thead><tr><th>Recurso</th><th>Apps enviadas (mes)</th><th>Entrevistas</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td class="row-label">Abraham Hurtado</td><td><input type="number" id="uw-ah-apps" placeholder="0" oninput="updateResumen()"></td><td><input type="number" id="uw-ah-ent" placeholder="0"></td><td><select id="uw-ah-st" onchange="updateResumen()"><option>Activo</option><option>Seguimiento</option><option>Inactivo</option></select></td></tr>
+          <tr><td class="row-label">Christian Morales</td><td><input type="number" id="uw-cm-apps" placeholder="0" oninput="updateResumen()"></td><td><input type="number" id="uw-cm-ent" placeholder="0"></td><td><select id="uw-cm-st" onchange="updateResumen()"><option>Activo</option><option>Seguimiento</option><option>Inactivo</option></select></td></tr>
+          <tr><td class="row-label">Arthur Torres</td><td><input type="number" id="uw-at-apps" placeholder="0" oninput="updateResumen()"></td><td><input type="number" id="uw-at-ent" placeholder="0"></td><td><select id="uw-at-st" onchange="updateResumen()"><option>Activo</option><option>Seguimiento</option><option>Inactivo</option></select></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== RRHH ===== -->
+  <div class="section" id="tab-rrhh">
+    <div class="two-col">
+      <div class="card">
+        <h3>Vacantes abiertas</h3>
+        <table class="kpi-table">
+          <thead><tr><th>Posición</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td class="row-label">Manager RRHH<div class="row-note">Cubierta temporalmente por Ops</div></td><td><select id="vac-rrhh" onchange="updateResumen()"><option>En búsqueda</option><option>Entrevistas</option><option>Cubierta</option><option>En pausa</option></select></td></tr>
+            <tr><td class="row-label">Vacante Rob</td><td><select id="vac-rob" onchange="updateResumen()"><option>En búsqueda</option><option>Entrevistas</option><option>Cubierta</option><option>En pausa</option></select></td></tr>
+            <tr><td class="row-label">Vacante Scalater<div class="row-note">Para Abraham Hurtado</div></td><td><select id="vac-scalater" onchange="updateResumen()"><option>Seguimiento</option><option>En búsqueda</option><option>Entrevistas</option><option>Cubierta</option></select></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Contratos y administración</h3>
+        <table class="kpi-table">
+          <thead><tr><th>Tarea</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td class="row-label">Renovación Sra. Doris</td><td><select id="ct-doris" onchange="updateResumen()"><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></td></tr>
+            <tr><td class="row-label">Kipo — contratos</td><td><select id="ct-kipo1" onchange="updateResumen()"><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></td></tr>
+            <tr><td class="row-label">Kipo — clientes</td><td><select id="ct-kipo2" onchange="updateResumen()"><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></td></tr>
+            <tr><td class="row-label">Kipo — proyectos</td><td><select id="ct-kipo3" onchange="updateResumen()"><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Programa de apoyo psicológico</h3>
+        <table class="kpi-table">
+          <tbody>
+            <tr><td class="row-label">Sesiones realizadas (mes)</td><td><input type="number" id="pap-sesiones" placeholder="0" oninput="updateResumen()"></td></tr>
+            <tr><td class="row-label">Colaboradores participantes</td><td><input type="number" id="pap-colab" placeholder="0"></td></tr>
+            <tr><td class="row-label">Estado del programa</td><td><select id="pap-estado" onchange="updateResumen()"><option>Activo</option><option>En seguimiento</option><option>Pausado</option></select></td></tr>
+          </tbody>
+        </table>
+        <textarea class="notes-area" style="margin-top:10px;" placeholder="Observaciones del programa..."></textarea>
+      </div>
+      <div class="card">
+        <h3>Reuniones y planificación</h3>
+        <table class="kpi-table">
+          <tbody>
+            <tr><td class="row-label">Reunión mensual del equipo</td><td><input type="text" placeholder="dd/mm/yyyy"></td></tr>
+            <tr><td class="row-label">Estado reunión</td><td><select><option>Pendiente</option><option>Planificada</option><option>Realizada</option></select></td></tr>
+            <tr><td class="row-label">Solicitudes de colaboradores</td><td><input type="number" id="rrhh-solicitudes" placeholder="0" oninput="updateResumen()"></td></tr>
+            <tr><td class="row-label">Estado solicitudes</td><td><select><option>En revisión</option><option>Atendidas</option></select></td></tr>
+            <tr><td class="row-label">Reunión semanal CIS</td><td><select><option>Activa</option><option>Pausada</option></select></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAREAS ===== -->
+  <div class="section" id="tab-tareas">
+    <div class="card">
+      <h3>Tareas del mes — 2026</h3>
+      <div class="tasks-list" id="taskList">
+        <div class="task-item"><input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">Cubrir vacantes abiertas (RRHH y Rob)</span><span class="task-tag tag-rrhh">RRHH</span></div>
+        <div class="task-item"><input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">Seguimiento Scalater — vacante Abraham Hurtado</span><span class="task-tag tag-rrhh">RRHH</span></div>
+        <div class="task-item"><input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">Planificar reunión del mes</span><span class="task-tag tag-ops">Ops</span></div>
+        <div class="task-item"><input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">Renovar contratos (Sra. Doris)</span><span class="task-tag tag-rrhh">RRHH</span></div>
+        <div class="task-item"><input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">Actualizar Kipo — contratos, clientes y proyectos</span><span class="task-tag tag-ops">Ops</span></div>
+        <div class="task-item"><input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">Atender solicitudes de los colaboradores</span><span class="task-tag tag-rrhh">RRHH</span></div>
+        <div class="task-item"><input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">Aplicaciones Upwork: 2 diarias por recurso</span><span class="task-tag tag-ops">Ops</span></div>
+        <div class="task-item"><input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">Seguimiento y QA a KipoHR</span><span class="task-tag tag-dev">Dev</span></div>
+        <div class="task-item"><input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">Seguimiento Paletas Morelia</span><span class="task-tag tag-dev">Dev</span></div>
+        <div class="task-item"><input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">Seguimiento Motorenn Dashboard</span><span class="task-tag tag-dev">Dev</span></div>
+        <div class="task-item"><input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">Seguimiento Multishop</span><span class="task-tag tag-dev">Dev</span></div>
+        <div class="task-item"><input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">Seguimiento Programa de Apoyo Psicológico</span><span class="task-tag tag-rrhh">RRHH</span></div>
+        <div class="task-item"><input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">Manejar operaciones y gastos administrativos</span><span class="task-tag tag-ops">Ops</span></div>
+      </div>
+      <div class="add-task-row">
+        <input type="text" id="newTaskText" placeholder="Nueva tarea...">
+        <select id="newTaskTag">
+          <option value="ops">Ops</option>
+          <option value="rrhh">RRHH</option>
+          <option value="dev">Dev</option>
+        </select>
+        <button class="btn-add" onclick="addTask()">+ Agregar</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+function switchTab(name) {
+  var names = ['resumen','clientes','upwork','rrhh','tareas'];
+  document.querySelectorAll('.tab').forEach(function(t, i) {
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.section').forEach(function(s) {
+    s.classList.remove('active');
+  });
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'resumen') updateResumen();
+}
+
+function gv(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+function gs(id) { var el = document.getElementById(id); return el ? el.options[el.selectedIndex].text : ''; }
+function pf(v) { var n = parseFloat(v); return isNaN(n) ? null : n; }
+
+function badge(text, type) { return '<span class="badge badge-' + type + '">' + text + '</span>'; }
+function statusBadge(s) {
+  if (s === 'Cubierta' || s === 'Completado' || s === 'Realizada' || s === 'Atendidas') return badge(s, 'ok');
+  if (s === 'Entrevistas' || s === 'En proceso' || s === 'En seguimiento' || s === 'Planificada') return badge(s, 'warn');
+  if (s === 'En pausa' || s === 'Pausado' || s === 'Inactivo') return badge(s, 'bad');
+  return badge(s, 'na');
+}
+
+function recalcClientes() {
+  var base = pf(gv('base-clientes')) || 29;
+  document.getElementById('c-base-disp').textContent = base;
+  var running = base;
+  ['q1','q2','q3','q4'].forEach(function(q) {
+    var nv = pf(gv(q + '-new'));
+    var lv = pf(gv(q + '-lost'));
+    if (nv !== null || lv !== null) {
+      var n = nv || 0; var l = lv || 0; var net = n - l;
+      var pct = running > 0 ? (net / running * 100).toFixed(2) + '%' : '0.00%';
+      running += net;
+      document.getElementById(q + '-net').textContent = (net >= 0 ? '+' : '') + net;
+      document.getElementById(q + '-pct').textContent = pct;
+    } else {
+      document.getElementById(q + '-net').textContent = '—';
+      document.getElementById(q + '-pct').textContent = '—';
+    }
+  });
+  var base2 = pf(gv('base-clientes')) || 29;
+  var q1n = pf(gv('q1-new')) || 0; var q1l = pf(gv('q1-lost')) || 0;
+  var q2n = pf(gv('q2-new')); var q2l = pf(gv('q2-lost')) || 0;
+  var total = base2 + q1n - q1l + (q2n !== null ? q2n - q2l : 0);
+  var neto = total - base2;
+  var crec = base2 > 0 ? (neto / base2 * 100).toFixed(2) + '%' : '—';
+  document.getElementById('c-actuales-disp').textContent = total;
+  document.getElementById('c-ganados-disp').textContent = q2n !== null ? q2n : '—';
+  document.getElementById('c-crec-disp').textContent = crec;
+  updateResumen();
+}
+
+function evalUpwork() {
+  var cpa = pf(gv('uw-cpa')); var conv = pf(gv('uw-conv'));
+  var boosts = pf(gv('uw-boosts')); var connects = pf(gv('uw-connects'));
+  var cpe = pf(gv('uw-cpe')); var gasto = pf(gv('uw-gasto'));
+  function sb(id, html) { document.getElementById(id).innerHTML = html; }
+  if (gasto !== null)   sb('ev-gasto',    badge('$' + gasto.toFixed(2), 'info'));
+  if (cpa !== null)     sb('ev-cpa',      cpa <= 5 ? badge('OK — $' + cpa.toFixed(2), 'ok') : badge('Alta — $' + cpa.toFixed(2), 'bad'));
+  if (cpe !== null)     sb('ev-cpe',      cpe > 100 ? badge('Alta — $' + cpe.toFixed(2), 'bad') : cpe > 50 ? badge('Normal — $' + cpe.toFixed(2), 'warn') : badge('OK — $' + cpe.toFixed(2), 'ok'));
+  if (conv !== null)    sb('ev-conv',     conv >= 10 ? badge('OK — ' + conv + '%', 'ok') : badge('Normal — ' + conv + '%', 'warn'));
+  if (boosts !== null)  sb('ev-boosts',   boosts <= 30 ? badge('OK — ' + boosts + '%', 'ok') : badge('Alto — ' + boosts + '%', 'bad'));
+  if (connects !== null) sb('ev-connects', connects >= 30 && connects <= 50 ? badge('Aceptable — ' + connects, 'ok') : connects < 30 ? badge('Bajo — ' + connects, 'warn') : badge('Alto — ' + connects, 'bad'));
+  updateResumen();
+}
+
+function updateProgress() {
+  var checks = document.querySelectorAll('.task-check');
+  var done = Array.from(checks).filter(function(c) { return c.checked; }).length;
+  var total = checks.length;
+  var pct = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('sum-tareas').textContent = pct + '%';
+  document.getElementById('sum-tareas-detail').textContent = done + ' de ' + total;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  checks.forEach(function(c) {
+    var textEl = c.parentElement.querySelector('.task-text');
+    if (textEl) textEl.classList.toggle('done', c.checked);
+  });
+  updateResumen();
+}
+
+function addTask() {
+  var text = document.getElementById('newTaskText').value.trim();
+  var tag = document.getElementById('newTaskTag').value;
+  if (!text) return;
+  var labels = { ops: 'Ops', rrhh: 'RRHH', dev: 'Dev' };
+  var div = document.createElement('div');
+  div.className = 'task-item';
+  div.innerHTML = '<input type="checkbox" class="task-check" onchange="updateProgress()"><span class="task-text">' + text + '</span><span class="task-tag tag-' + tag + '">' + labels[tag] + '</span>';
+  document.getElementById('taskList').appendChild(div);
+  document.getElementById('newTaskText').value = '';
+  updateProgress();
+}
+
+function updateResumen() {
+  var base = pf(gv('base-clientes')) || 29;
+  var q1n = pf(gv('q1-new')) || 0; var q1l = pf(gv('q1-lost')) || 0;
+  var q2n = pf(gv('q2-new')); var q2l = pf(gv('q2-lost')) || 0;
+  var total = base + q1n - q1l + (q2n !== null ? q2n - q2l : 0);
+  var neto = total - base;
+  var crec = base > 0 ? (neto / base * 100).toFixed(2) + '%' : '—';
+
+  document.getElementById('sum-clientes').textContent = total;
+  document.getElementById('sum-neto').textContent = neto >= 0 ? '+' + neto : neto;
+  document.getElementById('sum-crecimiento').textContent = crec;
+  document.getElementById('r-q1base').textContent = base;
+  document.getElementById('r-current').textContent = total;
+  document.getElementById('r-q1new').textContent = gv('q1-new') || '—';
+  document.getElementById('r-q1lost').textContent = gv('q1-lost') || '—';
+  document.getElementById('r-q2new').textContent = gv('q2-new') || '—';
+  document.getElementById('r-q2lost').textContent = gv('q2-lost') || '—';
+  document.getElementById('r-neto').textContent = neto >= 0 ? '+' + neto : neto;
+  document.getElementById('r-crec').textContent = crec;
+
+  var ref = pf(gv('src-ref')) || 0;
+  var uw = pf(gv('src-upwork')) || 0;
+  var em = pf(gv('src-email')) || 0;
+  var maxV = Math.max(ref, uw, em);
+  document.getElementById('r-canal').textContent = maxV === 0 ? '—' : ref === maxV ? 'Referencia directa' : uw === maxV ? 'Upwork' : 'Correo electrónico';
+
+  var gasto = pf(gv('uw-gasto')); var cpa = pf(gv('uw-cpa')); var cpe = pf(gv('uw-cpe'));
+  var conv = pf(gv('uw-conv')); var boosts = pf(gv('uw-boosts')); var connects = pf(gv('uw-connects'));
+  document.getElementById('r-gasto').textContent = gasto !== null ? '$' + gasto.toFixed(2) : '—';
+  document.getElementById('r-cpa').innerHTML = cpa !== null ? '$' + cpa.toFixed(2) + ' ' + (cpa <= 5 ? badge('OK','ok') : badge('Alta','bad')) : '—';
+  document.getElementById('r-cpe').innerHTML = cpe !== null ? '$' + cpe.toFixed(2) + ' ' + (cpe > 100 ? badge('Alta','bad') : cpe > 50 ? badge('Normal','warn') : badge('OK','ok')) : '—';
+  document.getElementById('r-conv').innerHTML = conv !== null ? conv + '% ' + (conv >= 10 ? badge('OK','ok') : badge('Normal','warn')) : '—';
+  document.getElementById('sum-conv').textContent = conv !== null ? conv + '%' : '—';
+  document.getElementById('r-boosts').innerHTML = boosts !== null ? boosts + '% ' + (boosts <= 30 ? badge('OK','ok') : badge('Alto','bad')) : '—';
+  document.getElementById('r-connects').innerHTML = connects !== null ? connects + ' ' + (connects >= 30 && connects <= 50 ? badge('Aceptable','ok') : connects < 30 ? badge('Bajo','warn') : badge('Alto','bad')) : '—';
+
+  document.getElementById('r-vacante-rrhh').innerHTML = statusBadge(gs('vac-rrhh'));
+  document.getElementById('r-vacante-rob').innerHTML = statusBadge(gs('vac-rob'));
+  document.getElementById('r-vacante-scalater').innerHTML = statusBadge(gs('vac-scalater'));
+  document.getElementById('r-doris').innerHTML = statusBadge(gs('ct-doris'));
+
+  var k1 = gs('ct-kipo1'); var k2 = gs('ct-kipo2'); var k3 = gs('ct-kipo3');
+  var allKipo = k1 === 'Completado' && k2 === 'Completado' && k3 === 'Completado';
+  var anyKipo = k1 !== 'Pendiente' || k2 !== 'Pendiente' || k3 !== 'Pendiente';
+  document.getElementById('r-kipo').innerHTML = statusBadge(allKipo ? 'Completado' : anyKipo ? 'En proceso' : 'Pendiente');
+  document.getElementById('r-pap').innerHTML = statusBadge(gs('pap-estado'));
+
+  var ses = gv('pap-sesiones'); document.getElementById('r-sesiones').textContent = ses || '—';
+  var sol = gv('rrhh-solicitudes'); document.getElementById('r-solicitudes').textContent = sol || '—';
+
+  var vacOpen = ['vac-rrhh','vac-rob','vac-scalater'].filter(function(id) { return gs(id) !== 'Cubierta'; }).length;
+  document.getElementById('sum-vacantes').textContent = vacOpen;
+
+  var checks = document.querySelectorAll('.task-check');
+  var done = Array.from(checks).filter(function(c) { return c.checked; }).length;
+  var tot = checks.length;
+  var pct = tot > 0 ? Math.round(done / tot * 100) : 0;
+  document.getElementById('sum-tareas').textContent = pct + '%';
+  document.getElementById('sum-tareas-detail').textContent = done + ' de ' + tot;
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  var taskItems = document.querySelectorAll('.task-item');
+  var html = '';
+  taskItems.forEach(function(item) {
+    var checked = item.querySelector('.task-check').checked;
+    var text = item.querySelector('.task-text').textContent;
+    var tagEl = item.querySelector('.task-tag');
+    var tagClass = tagEl ? tagEl.className.replace('task-tag ', '') : '';
+    var tagText = tagEl ? tagEl.textContent : '';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03);">'
+      + '<span style="font-size:11px;color:' + (checked ? 'var(--ci-muted)' : 'var(--ci-text)') + ';text-decoration:' + (checked ? 'line-through' : 'none') + ';">' + text + '</span>'
+      + '<span class="task-tag ' + tagClass + '" style="font-size:9px;">' + tagText + '</span>'
+      + '</div>';
+  });
+  document.getElementById('r-tasks-list').innerHTML = html || '<span style="font-size:11px;color:var(--ci-muted);">Sin tareas cargadas.</span>';
+}
+
+updateResumen();
+</script>
+</body>
+</html>
