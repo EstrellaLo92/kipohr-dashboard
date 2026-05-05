@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard KPIs — Crazy Imagine Software 2026</title>
+<style>
+:root{
+  --ci-dark:#1a2535;--ci-green:#b6e226;--ci-green-dark:#8aaa14;
+  --ci-navy:#243044;--ci-bg:#111c2a;--ci-card:#1e2d40;
+  --ci-text:#e8edf2;--ci-muted:#8fa3b8;
+  --ci-border:rgba(182,226,38,0.22);--ci-input-bg:rgba(255,255,255,0.07);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--ci-bg);color:var(--ci-text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;min-height:100vh;padding:20px 16px;}
+.container{max-width:920px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--ci-dark);border-radius:14px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border:1px solid var(--ci-border);flex-wrap:wrap;gap:10px;}
+.header-left{display:flex;align-items:center;gap:12px;}
+.logo-img{width:42px;height:42px;object-fit:contain;border-radius:6px;}
+.header h1{font-size:15px;font-weight:600;color:var(--ci-text);}
+.header p{font-size:11px;color:var(--ci-muted);margin-top:2px;}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.month-select{background:var(--ci-input-bg);border:1px solid var(--ci-border);border-radius:8px;color:var(--ci-text);padding:7px 12px;font-size:13px;cursor:pointer;}
+.print-btn{background:transparent;border:1px solid var(--ci-border);color:var(--ci-muted);border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;}
+.print-btn:hover{color:var(--ci-text);border-color:rgba(182,226,38,.5);}
+
+/* TABS */
+.tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;}
+.tab{padding:7px 16px;border-radius:8px;border:1px solid var(--ci-border);background:var(--ci-dark);color:var(--ci-muted);font-size:12px;cursor:pointer;white-space:nowrap;transition:all .15s;user-select:none;}
+.tab.active{background:var(--ci-green);color:var(--ci-dark);font-weight:600;border-color:var(--ci-green);}
+.tab:hover:not(.active){color:var(--ci-text);border-color:rgba(182,226,38,.5);}
+.section{display:none;}.section.active{display:block;}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:500;}
+.badge-ok{background:rgba(57,197,120,.15);color:#39c578;}
+.badge-warn{background:rgba(245,166,35,.15);color:#f5a623;}
+.badge-bad{background:rgba(240,68,56,.15);color:#f04438;}
+.badge-na{background:rgba(143,163,184,.15);color:var(--ci-muted);}
+.badge-info{background:rgba(182,226,38,.12);color:#b6e226;}
+
+/* CARDS base */
+.card{background:var(--ci-dark);border:1px solid var(--ci-border);border-radius:12px;padding:16px 20px;margin-bottom:10px;}
+.card h3{font-size:11px;font-weight:600;color:var(--ci-green);margin-bottom:14px;text-transform:uppercase;letter-spacing:.07em;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:12px;}
+.stat-card{background:var(--ci-dark);border:1px solid var(--ci-border);border-radius:10px;padding:12px 14px;}
+.stat-label{font-size:10px;color:var(--ci-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.stat-value{font-size:22px;font-weight:600;color:var(--ci-green);}
+.stat-sub{font-size:10px;color:var(--ci-muted);margin-top:2px;}
+
+/* TABLES */
+.kpi-table{width:100%;border-collapse:collapse;font-size:12px;}
+.kpi-table th{text-align:left;color:var(--ci-muted);font-weight:400;font-size:10px;text-transform:uppercase;padding:0 6px 8px;border-bottom:1px solid var(--ci-border);}
+.kpi-table td{padding:6px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+.kpi-table tr:last-child td{border-bottom:none;}
+.kpi-table input[type=number],.kpi-table input[type=text]{background:var(--ci-input-bg);border:1px solid var(--ci-border);border-radius:6px;color:var(--ci-text);padding:4px 8px;width:100%;font-size:12px;}
+.kpi-table input:focus{outline:none;border-color:var(--ci-green);}
+.kpi-table select{background:var(--ci-input-bg);border:1px solid var(--ci-border);border-radius:6px;color:var(--ci-text);padding:4px 8px;font-size:11px;width:100%;}
+.row-label{color:var(--ci-text);font-size:12px;}
+.row-note{font-size:10px;color:var(--ci-muted);margin-top:1px;}
+
+/* ===== RESUMEN ===== */
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.hero-main{background:linear-gradient(135deg,#1e2d40 0%,#243044 100%);border:1px solid var(--ci-border);border-radius:14px;padding:20px;position:relative;overflow:hidden;}
+.hero-main::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(182,226,38,.06);}
+.hero-label{font-size:10px;color:var(--ci-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.hero-number{font-size:52px;font-weight:700;color:var(--ci-green);line-height:1;}
+.hero-sub{font-size:12px;color:var(--ci-muted);margin-top:6px;}
+.hero-trend{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;margin-top:8px;}
+.hero-right{display:flex;flex-direction:column;gap:10px;}
+.mini-card{background:#1e2d40;border:1px solid var(--ci-border);border-radius:12px;padding:14px 16px;flex:1;}
+.mini-label{font-size:10px;color:var(--ci-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.mini-value{font-size:24px;font-weight:600;color:var(--ci-green);}
+.mini-sub{font-size:10px;color:var(--ci-muted);margin-top:2px;}
+@media(max-width:480px){.hero{grid-template-columns:1fr;}}
+
+.canal-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+.canal-card{background:var(--ci-dark);border-radius:12px;padding:14px;text-align:center;border:1px solid;}
+.canal-card.c-uw{border-color:rgba(20,180,140,.25);}
+.canal-card.c-ref{border-color:rgba(158,143,255,.25);}
+.canal-card.c-em{border-color:rgba(245,166,35,.25);}
+.canal-icon{font-size:18px;margin-bottom:6px;}
+.canal-num{font-size:22px;font-weight:700;}
+.canal-num.uw{color:#14b48c;}.canal-num.ref{color:#9e8fff;}.canal-num.em{color:#f5a623;}
+.canal-lbl{font-size:10px;color:var(--ci-muted);margin-top:3px;text-transform:uppercase;letter-spacing:.05em;}
+
+.client-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;border:1px solid;}
+.chip.uw{background:rgba(20,180,140,.08);border-color:rgba(20,180,140,.25);color:#14b48c;}
+.chip.ref{background:rgba(158,143,255,.08);border-color:rgba(158,143,255,.25);color:#9e8fff;}
+.chip.em{background:rgba(245,166,35,.08);border-color:rgba(245,166,35,.25);color:#f5a623;}
+.chip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.chip.uw .chip-dot{background:#14b48c;}.chip.ref .chip-dot{background:#9e8fff;}.chip.em .chip-dot{background:#f5a623;}
+
+.ring-wrap{display:flex;align-items:center;gap:16px;padding:14px 18px;background:var(--ci-dark);border:1px solid var(--ci-border);border-radius:12px;margin-bottom:10px;}
+.ring-info .ring-title{font-size:12px;font-weight:500;color:var(--ci-text);margin-bottom:8px;}
+.ring-pills{display:flex;gap:6px;flex-wrap:wrap;}
+.rpill{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:500;}
+.rp-pending{background:rgba(143,163,184,.12);color:var(--ci-muted);}
+.rp-progress{background:rgba(245,166,35,.15);color:#f5a623;}
+.rp-done{background:rgba(57,197,120,.15);color:#39c578;}
+
+/* ACCORDION */
+.acc-item{background:var(--ci-dark);border:1px solid var(--ci-border);border-radius:12px;margin-bottom:8px;overflow:hidden;}
+.acc-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;user-select:none;transition:background .15s;}
+.acc-header:hover{background:rgba(255,255,255,.03);}
+.acc-header-left{display:flex;align-items:center;gap:10px;}
+.acc-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.acc-icon.upwork{background:rgba(20,180,140,.15);}
+.acc-icon.rrhh{background:rgba(158,143,255,.15);}
+.acc-icon.tareas{background:rgba(182,226,38,.1);}
+.acc-title{font-size:13px;font-weight:500;color:var(--ci-text);}
+.acc-right{display:flex;align-items:center;gap:8px;}
+.acc-badges{display:flex;gap:4px;flex-wrap:wrap;}
+.acc-chevron{color:var(--ci-muted);font-size:11px;transition:transform .2s;flex-shrink:0;}
+.acc-chevron.open{transform:rotate(180deg);}
+.acc-body{display:none;padding:0 16px 14px;}
+.acc-body.open{display:block;}
+.acc-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;}
+.acc-row:last-child{border-bottom:none;}
+.acc-key{color:var(--ci-muted);}
+.acc-val{color:var(--ci-text);font-weight:500;text-align:right;}
+
+/* TAREAS */
+.task-summary{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.task-pill{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:500;}
+.tp-pending{background:rgba(143,163,184,.12);color:var(--ci-muted);}
+.tp-progress{background:rgba(245,166,35,.15);color:#f5a623;}
+.tp-done{background:rgba(57,197,120,.15);color:#39c578;}
+.tasks-group-title{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;padding:8px 0 6px;margin-top:6px;}
+.tasks-group-title:first-child{margin-top:0;}
+.tasks-group-title.g-pending{color:var(--ci-muted);}
+.tasks-group-title.g-progress{color:#f5a623;}
+.tasks-group-title.g-done{color:#39c578;}
+.task-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px solid var(--ci-border);background:var(--ci-input-bg);margin-bottom:5px;}
+.task-item.t-progress{border-color:rgba(245,166,35,.3);background:rgba(245,166,35,.05);}
+.task-item.t-done{border-color:rgba(57,197,120,.2);background:rgba(57,197,120,.04);opacity:.7;}
+.task-status-sel{background:var(--ci-input-bg);border:1px solid var(--ci-border);border-radius:6px;color:var(--ci-text);padding:3px 6px;font-size:10px;flex-shrink:0;width:110px;}
+.task-status-sel:focus{outline:none;border-color:var(--ci-green);}
+.task-text{font-size:12px;color:var(--ci-text);flex:1;}
+.task-text.done{color:var(--ci-muted);text-decoration:line-through;}
+.task-tag{font-size:9px;padding:2px 7px;border-radius:20px;flex-shrink:0;}
+.tag-rrhh{background:rgba(110,130,255,.2);color:#8e9fff;}
+.tag-ops{background:rgba(182,226,38,.15);color:#b6e226;}
+.tag-dev{background:rgba(57,197,120,.15);color:#39c578;}
+.btn-remove{background:rgba(240,68,56,.1);border:none;border-radius:6px;color:#f04438;font-size:11px;padding:3px 7px;cursor:pointer;flex-shrink:0;}
+.btn-remove:hover{background:rgba(240,68,56,.25);}
+
+/* OTROS */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:560px){.two-col{grid-template-columns:1fr;}}
+.canal-uw{background:rgba(20,180,140,.15);color:#14b48c;padding:2px 7px;border-radius:20px;font-size:10px;}
+.canal-ref{background:rgba(158,143,255,.15);color:#9e8fff;padding:2px 7px;border-radius:20px;font-size:10px;}
+.canal-email{background:rgba(245,166,35,.15);color:#f5a623;padding:2px 7px;border-radius:20px;font-size:10px;}
+.add-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.add-row input{flex:1;min-width:120px;background:var(--ci-input-bg);border:1px solid var(--ci-border);border-radius:8px;color:var(--ci-text);padding:7px 10px;font-size:12px;}
+.add-row input:focus{outline:none;border-color:var(--ci-green);}
+.add-row select{background:var(--ci-input-bg);border:1px solid var(--ci-border);border-radius:8px;color:var(--ci-text);padding:7px 8px;font-size:11px;}
+.btn-add{background:var(--ci-green);border:none;border-radius:8px;color:var(--ci-dark);font-weight:600;font-size:12px;padding:7px 14px;cursor:pointer;}
+.btn-add:hover{background:var(--ci-green-dark);}
+.progress-bar{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin-top:5px;}
+.progress-fill{height:100%;background:var(--ci-green);border-radius:3px;transition:width .3s;}
+.notes-area{width:100%;background:var(--ci-input-bg);border:1px solid var(--ci-border);border-radius:8px;color:var(--ci-text);padding:10px 12px;font-size:12px;resize:vertical;min-height:80px;font-family:inherit;}
+.notes-area:focus{outline:none;border-color:var(--ci-green);}
+.hint{font-size:10px;color:var(--ci-muted);font-style:italic;margin-top:6px;}
+.client-list-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:11px;}
+.client-list-row:last-child{border-bottom:none;}
+
+@media print{
+  body{background:#fff;color:#111;padding:0;}
+  .tabs,.add-row,.print-btn,.month-select,.btn-add,.btn-remove,.task-status-sel{display:none!important;}
+  .section{display:block!important;page-break-before:always;}
+  .section:first-child{page-break-before:avoid;}
+  .header,.card,.acc-item,.hero-main,.mini-card,.canal-card,.stat-card,.ring-wrap{background:#f5f5f5!important;border:1px solid #ddd!important;}
+  .acc-body{display:block!important;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="header-left">
+    <img class="logo-img" src="data:image/png;base64,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" alt="Crazy Imagine">
+    <div>
+      <h1>Dashboard de KPIs — Reunión Mensual</h1>
+      <p>Crazy Imagine Software &nbsp;·&nbsp; Operaciones &amp; RRHH &nbsp;·&nbsp; 2026</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <select class="month-select" id="monthSelect" onchange="updateResumen()">
+      <option>Enero 2026</option><option>Febrero 2026</option><option>Marzo 2026</option>
+      <option>Abril 2026</option><option selected>Mayo 2026</option><option>Junio 2026</option>
+      <option>Julio 2026</option><option>Agosto 2026</option><option>Septiembre 2026</option>
+      <option>Octubre 2026</option><option>Noviembre 2026</option><option>Diciembre 2026</option>
+    </select>
+    <button class="print-btn" onclick="window.print()">Imprimir / PDF</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('resumen')">Resumen</div>
+  <div class="tab" onclick="switchTab('clientes')">Clientes</div>
+  <div class="tab" onclick="switchTab('upwork')">Upwork</div>
+  <div class="tab" onclick="switchTab('rrhh')">RRHH</div>
+  <div class="tab" onclick="switchTab('tareas')">Tareas</div>
+</div>
+
+<!-- ===== RESUMEN ===== -->
+<div class="section active" id="tab-resumen">
+  <div class="hero">
+    <div class="hero-main">
+      <div class="hero-label">Total clientes activos</div>
+      <div class="hero-number" id="h-total">29</div>
+      <div class="hero-sub">Base 2026 · inicio: <span id="h-base-label">29</span></div>
+      <div class="hero-trend" id="h-trend" style="background:rgba(143,163,184,.12);color:var(--ci-muted);">— sin cambios aún</div>
+    </div>
+    <div class="hero-right">
+      <div class="mini-card">
+        <div class="mini-label">Crecimiento neto</div>
+        <div class="mini-value" id="h-neto">—</div>
+        <div class="mini-sub">vs inicio de año</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-label">Crecimiento %</div>
+        <div class="mini-value" id="h-pct">—</div>
+        <div class="mini-sub">acumulado 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="canal-grid">
+    <div class="canal-card c-uw"><div class="canal-icon">🔗</div><div class="canal-num uw" id="h-c-uw">0</div><div class="canal-lbl">Upwork</div></div>
+    <div class="canal-card c-ref"><div class="canal-icon">👥</div><div class="canal-num ref" id="h-c-ref">0</div><div class="canal-lbl">Referencia</div></div>
+    <div class="canal-card c-em"><div class="canal-icon">✉️</div><div class="canal-num em" id="h-c-em">0</div><div class="canal-lbl">Correo</div></div>
+  </div>
+
+  <div class="card" style="padding:14px 16px;">
+    <div style="font-size:11px;color:var(--ci-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;font-weight:500;">Clientes ganados este año</div>
+    <div class="client-chips" id="h-chips"><span style="font-size:11px;color:var(--ci-muted);">Agrega clientes en la tab Clientes →</span></div>
+  </div>
+
+  <div class="ring-wrap">
+    <svg width="64" height="64" viewBox="0 0 64 64" style="flex-shrink:0;">
+      <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="7"/>
+      <circle id="ring-done" cx="32" cy="32" r="26" fill="none" stroke="#39c578" stroke-width="7" stroke-linecap="round" stroke-dasharray="163.4" stroke-dashoffset="163.4" transform="rotate(-90 32 32)" style="transition:stroke-dashoffset .5s;"/>
+      <text x="32" y="37" text-anchor="middle" font-size="13" font-weight="700" fill="#e8edf2" id="ring-pct-text">0%</text>
+    </svg>
+    <div class="ring-info" style="flex:1;">
+      <div class="ring-title">Tareas del mes</div>
+      <div class="ring-pills">
+        <span class="rpill rp-pending" id="h-pill-p">0 sin empezar</span>
+        <span class="rpill rp-progress" id="h-pill-pr">0 en progreso</span>
+        <span class="rpill rp-done" id="h-pill-d">0 completadas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acordeón Upwork -->
+  <div class="acc-item">
+    <div class="acc-header" onclick="toggleAcc('a-upwork')">
+      <div class="acc-header-left">
+        <div class="acc-icon upwork">📊</div>
+        <div class="acc-title">Upwork — métricas del mes</div>
+      </div>
+      <div class="acc-right">
+        <div class="acc-badges" id="ab-upwork"></div>
+        <span class="acc-chevron" id="chev-a-upwork">▼</span>
+      </div>
+    </div>
+    <div class="acc-body" id="a-upwork">
+      <div class="acc-row"><span class="acc-key">Total gasto</span><span class="acc-val" id="ar-gasto">—</span></div>
+      <div class="acc-row"><span class="acc-key">Costo por aplicación</span><span class="acc-val" id="ar-cpa">—</span></div>
+      <div class="acc-row"><span class="acc-key">Costo por entrevista</span><span class="acc-val" id="ar-cpe">—</span></div>
+      <div class="acc-row"><span class="acc-key">Tasa de conversión</span><span class="acc-val" id="ar-conv">—</span></div>
+      <div class="acc-row"><span class="acc-key">% Boosts del total</span><span class="acc-val" id="ar-boosts">—</span></div>
+      <div class="acc-row"><span class="acc-key">Promedio connects/app</span><span class="acc-val" id="ar-connects">—</span></div>
+      <div style="margin-top:10px;">
+        <div style="font-size:10px;color:var(--ci-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Clientes ganados vía Upwork</div>
+        <div id="ar-uw-clients"><span style="font-size:11px;color:var(--ci-muted);">Sin clientes Upwork aún.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acordeón RRHH -->
+  <div class="acc-item">
+    <div class="acc-header" onclick="toggleAcc('a-rrhh')">
+      <div class="acc-header-left">
+        <div class="acc-icon rrhh">👤</div>
+        <div class="acc-title">RRHH — vacantes y contratos</div>
+      </div>
+      <div class="acc-right">
+        <div class="acc-badges" id="ab-rrhh"></div>
+        <span class="acc-chevron" id="chev-a-rrhh">▼</span>
+      </div>
+    </div>
+    <div class="acc-body" id="a-rrhh">
+      <div class="acc-row"><span class="acc-key">Vacante Manager RRHH</span><span class="acc-val" id="ar-vac-rrhh"><span class="badge badge-warn">En búsqueda</span></span></div>
+      <div class="acc-row"><span class="acc-key">Vacante Rob</span><span class="acc-val" id="ar-vac-rob"><span class="badge badge-warn">En búsqueda</span></span></div>
+      <div class="acc-row"><span class="acc-key">Vacante Scalater</span><span class="acc-val" id="ar-vac-scalater"><span class="badge badge-na">Seguimiento</span></span></div>
+      <div class="acc-row"><span class="acc-key">Renovación Sra. Doris</span><span class="acc-val" id="ar-doris"><span class="badge badge-warn">Pendiente</span></span></div>
+      <div class="acc-row"><span class="acc-key">Kipo actualizado</span><span class="acc-val" id="ar-kipo"><span class="badge badge-warn">Pendiente</span></span></div>
+      <div class="acc-row"><span class="acc-key">Programa apoyo psicológico</span><span class="acc-val" id="ar-pap"><span class="badge badge-ok">Activo</span></span></div>
+      <div class="acc-row"><span class="acc-key">Sesiones psicológicas</span><span class="acc-val" id="ar-sesiones">—</span></div>
+      <div class="acc-row"><span class="acc-key">Solicitudes colaboradores</span><span class="acc-val" id="ar-solicitudes">—</span></div>
+    </div>
+  </div>
+
+  <!-- Acordeón Tareas -->
+  <div class="acc-item">
+    <div class="acc-header" onclick="toggleAcc('a-tareas')">
+      <div class="acc-header-left">
+        <div class="acc-icon tareas">✅</div>
+        <div class="acc-title">Tareas — detalle completo</div>
+      </div>
+      <div class="acc-right">
+        <div class="acc-badges" id="ab-tareas"></div>
+        <span class="acc-chevron" id="chev-a-tareas">▼</span>
+      </div>
+    </div>
+    <div class="acc-body" id="a-tareas">
+      <div id="ar-tasks-detail"><span style="font-size:11px;color:var(--ci-muted);">Ve a la tab Tareas para cargar el estado.</span></div>
+    </div>
+  </div>
+
+  <div style="margin-top:10px;">
+    <div style="font-size:11px;color:var(--ci-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Notas y acuerdos de la reunión</div>
+    <textarea class="notes-area" placeholder="Escribe aquí los comentarios y acuerdos de la reunión..."></textarea>
+  </div>
+  <p class="hint">Los datos se actualizan automáticamente al llenar las otras secciones.</p>
+</div>
+
+<!-- ===== CLIENTES ===== -->
+<div class="section" id="tab-clientes">
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">Inicio año (Q1)</div><div class="stat-value" id="c-base-disp">29</div><div class="stat-sub">Base 2026</div></div>
+    <div class="stat-card"><div class="stat-label">Actuales</div><div class="stat-value" id="c-actuales-disp">29</div><div class="stat-sub">Hoy</div></div>
+    <div class="stat-card"><div class="stat-label">Vía Upwork</div><div class="stat-value" id="c-upwork-disp" style="color:#14b48c;">0</div><div class="stat-sub">Clientes ganados</div></div>
+    <div class="stat-card"><div class="stat-label">Crecimiento</div><div class="stat-value" id="c-crec-disp">—</div><div class="stat-sub">Acumulado 2026</div></div>
+  </div>
+  <div class="card">
+    <h3>Base inicial del año</h3>
+    <table class="kpi-table"><tbody>
+      <tr><td class="row-label">Clientes al inicio del año (Q1 2026)</td><td style="width:130px"><input type="number" id="base-clientes" value="29" oninput="recalcClientes()"></td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <h3>Clientes por trimestre — 2026</h3>
+    <table class="kpi-table">
+      <thead><tr><th>Trimestre</th><th>Nuevos</th><th>Perdidos</th><th>Neto</th><th>%</th></tr></thead>
+      <tbody>
+        <tr><td class="row-label">Q1</td><td><input type="number" id="q1-new" value="0" oninput="recalcClientes()"></td><td><input type="number" id="q1-lost" value="0" oninput="recalcClientes()"></td><td id="q1-net">0</td><td id="q1-pct">0.00%</td></tr>
+        <tr><td class="row-label">Q2</td><td><input type="number" id="q2-new" placeholder="—" oninput="recalcClientes()"></td><td><input type="number" id="q2-lost" placeholder="—" oninput="recalcClientes()"></td><td id="q2-net">—</td><td id="q2-pct">—</td></tr>
+        <tr><td class="row-label">Q3</td><td><input type="number" id="q3-new" placeholder="—" oninput="recalcClientes()"></td><td><input type="number" id="q3-lost" placeholder="—" oninput="recalcClientes()"></td><td id="q3-net">—</td><td id="q3-pct">—</td></tr>
+        <tr><td class="row-label">Q4</td><td><input type="number" id="q4-new" placeholder="—" oninput="recalcClientes()"></td><td><input type="number" id="q4-lost" placeholder="—" oninput="recalcClientes()"></td><td id="q4-net">—</td><td id="q4-pct">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Clientes ganados — lista por canal</h3>
+    <table class="kpi-table">
+      <thead><tr><th style="width:35%">Cliente</th><th style="width:22%">Canal</th><th style="width:15%">Trimestre</th><th style="width:20%">Recurso UW</th><th style="width:8%"></th></tr></thead>
+      <tbody id="client-tbody"><tr><td colspan="5" style="color:var(--ci-muted);font-size:11px;text-align:center;padding:12px;">Aún no hay clientes.</td></tr></tbody>
+    </table>
+    <div class="add-row">
+      <input type="text" id="new-client-name" placeholder="Nombre del cliente">
+      <select id="new-client-canal"><option value="upwork">Upwork</option><option value="ref">Referencia directa</option><option value="email">Correo electrónico</option></select>
+      <select id="new-client-q"><option value="Q1">Q1</option><option value="Q2" selected>Q2</option><option value="Q3">Q3</option><option value="Q4">Q4</option></select>
+      <input type="text" id="new-client-recurso" placeholder="Recurso (si UW)" style="max-width:130px;">
+      <button class="btn-add" onclick="addClient()">+ Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== UPWORK ===== -->
+<div class="section" id="tab-upwork">
+  <div class="card">
+    <h3>Estadísticas mensuales — Upwork 2026</h3>
+    <table class="kpi-table">
+      <thead><tr><th>Indicador</th><th>Valor</th><th>Meta</th><th>Evaluación</th></tr></thead>
+      <tbody>
+        <tr><td class="row-label">Total gasto ($)</td><td><input type="number" id="uw-gasto" placeholder="0.00" oninput="evalUpwork()"></td><td><span style="font-size:10px;color:var(--ci-muted);">—</span></td><td id="ev-gasto"><span class="badge badge-na">Sin datos</span></td></tr>
+        <tr><td class="row-label">Costo por aplicación ($)</td><td><input type="number" id="uw-cpa" placeholder="0.00" oninput="evalUpwork()"></td><td><span style="font-size:10px;color:var(--ci-muted);">≤ $5</span></td><td id="ev-cpa"><span class="badge badge-na">Sin datos</span></td></tr>
+        <tr><td class="row-label">Costo por entrevista ($)</td><td><input type="number" id="uw-cpe" placeholder="0.00" oninput="evalUpwork()"></td><td><span style="font-size:10px;color:var(--ci-muted);">—</span></td><td id="ev-cpe"><span class="badge badge-na">Sin datos</span></td></tr>
+        <tr><td class="row-label">Tasa de conversión (%)</td><td><input type="number" id="uw-conv" placeholder="0" oninput="evalUpwork()"></td><td><span style="font-size:10px;color:var(--ci-muted);">≥ 10%</span></td><td id="ev-conv"><span class="badge badge-na">Sin datos</span></td></tr>
+        <tr><td class="row-label">% Boosts del total</td><td><input type="number" id="uw-boosts" placeholder="0" oninput="evalUpwork()"></td><td><span style="font-size:10px;color:var(--ci-muted);">≤ 30%</span></td><td id="ev-boosts"><span class="badge badge-na">Sin datos</span></td></tr>
+        <tr><td class="row-label">Promedio connects/app</td><td><input type="number" id="uw-connects" placeholder="0" oninput="evalUpwork()"></td><td><span style="font-size:10px;color:var(--ci-muted);">30–50</span></td><td id="ev-connects"><span class="badge badge-na">Sin datos</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Recursos activos — Meta: 2 apps diarias por recurso</h3>
+    <table class="kpi-table">
+      <thead><tr><th>Recurso</th><th>Apps (mes)</th><th>Entrevistas</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr><td class="row-label">Abraham Hurtado</td><td><input type="number" id="uw-ah-apps" placeholder="0" oninput="updateResumen()"></td><td><input type="number" placeholder="0"></td><td><select id="uw-ah-st" onchange="updateResumen()"><option>Activo</option><option>Seguimiento</option><option>Inactivo</option></select></td></tr>
+        <tr><td class="row-label">Christian Morales</td><td><input type="number" id="uw-cm-apps" placeholder="0" oninput="updateResumen()"></td><td><input type="number" placeholder="0"></td><td><select id="uw-cm-st" onchange="updateResumen()"><option>Activo</option><option>Seguimiento</option><option>Inactivo</option></select></td></tr>
+        <tr><td class="row-label">Arthur Torres</td><td><input type="number" id="uw-at-apps" placeholder="0" oninput="updateResumen()"></td><td><input type="number" placeholder="0"></td><td><select id="uw-at-st" onchange="updateResumen()"><option>Activo</option><option>Seguimiento</option><option>Inactivo</option></select></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Clientes ganados vía Upwork</h3>
+    <div id="uw-client-list"><span style="font-size:11px;color:var(--ci-muted);">Agrega clientes desde la tab Clientes.</span></div>
+  </div>
+</div>
+
+<!-- ===== RRHH ===== -->
+<div class="section" id="tab-rrhh">
+  <div class="two-col">
+    <div class="card">
+      <h3>Vacantes abiertas</h3>
+      <table class="kpi-table">
+        <thead><tr><th>Posición</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td class="row-label">Manager RRHH<div class="row-note">Cubierta por Ops temporalmente</div></td><td><select id="vac-rrhh" onchange="updateResumen()"><option>En búsqueda</option><option>Entrevistas</option><option>Cubierta</option><option>En pausa</option></select></td></tr>
+          <tr><td class="row-label">Vacante Rob</td><td><select id="vac-rob" onchange="updateResumen()"><option>En búsqueda</option><option>Entrevistas</option><option>Cubierta</option><option>En pausa</option></select></td></tr>
+          <tr><td class="row-label">Vacante Scalater<div class="row-note">Para Abraham Hurtado</div></td><td><select id="vac-scalater" onchange="updateResumen()"><option>Seguimiento</option><option>En búsqueda</option><option>Entrevistas</option><option>Cubierta</option></select></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Contratos y administración</h3>
+      <table class="kpi-table">
+        <thead><tr><th>Tarea</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td class="row-label">Renovación Sra. Doris</td><td><select id="ct-doris" onchange="updateResumen()"><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></td></tr>
+          <tr><td class="row-label">Kipo — contratos</td><td><select id="ct-kipo1" onchange="updateResumen()"><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></td></tr>
+          <tr><td class="row-label">Kipo — clientes</td><td><select id="ct-kipo2" onchange="updateResumen()"><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></td></tr>
+          <tr><td class="row-label">Kipo — proyectos</td><td><select id="ct-kipo3" onchange="updateResumen()"><option>Pendiente</option><option>En proceso</option><option>Completado</option></select></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <h3>Programa de apoyo psicológico</h3>
+      <table class="kpi-table">
+        <tbody>
+          <tr><td class="row-label">Sesiones realizadas (mes)</td><td><input type="number" id="pap-sesiones" placeholder="0" oninput="updateResumen()"></td></tr>
+          <tr><td class="row-label">Colaboradores participantes</td><td><input type="number" id="pap-colab" placeholder="0"></td></tr>
+          <tr><td class="row-label">Estado</td><td><select id="pap-estado" onchange="updateResumen()"><option>Activo</option><option>En seguimiento</option><option>Pausado</option></select></td></tr>
+        </tbody>
+      </table>
+      <textarea class="notes-area" style="margin-top:8px;" placeholder="Observaciones..."></textarea>
+    </div>
+    <div class="card">
+      <h3>Reuniones y planificación</h3>
+      <table class="kpi-table">
+        <tbody>
+          <tr><td class="row-label">Reunión mensual del equipo</td><td><input type="text" placeholder="dd/mm/yyyy"></td></tr>
+          <tr><td class="row-label">Estado reunión</td><td><select><option>Pendiente</option><option>Planificada</option><option>Realizada</option></select></td></tr>
+          <tr><td class="row-label">Solicitudes de colaboradores</td><td><input type="number" id="rrhh-solicitudes" placeholder="0" oninput="updateResumen()"></td></tr>
+          <tr><td class="row-label">Estado solicitudes</td><td><select><option>En revisión</option><option>Atendidas</option></select></td></tr>
+          <tr><td class="row-label">Reunión semanal CIS</td><td><select><option>Activa</option><option>Pausada</option></select></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAREAS ===== -->
+<div class="section" id="tab-tareas">
+  <div class="card">
+    <h3>Tareas del mes — 2026</h3>
+    <div class="task-summary">
+      <span class="task-pill tp-pending" id="t-pill-p">0 sin empezar</span>
+      <span class="task-pill tp-progress" id="t-pill-pr">0 en progreso</span>
+      <span class="task-pill tp-done" id="t-pill-d">0 completadas</span>
+    </div>
+    <div id="taskList"></div>
+    <div class="add-row" style="margin-top:12px;">
+      <input type="text" id="newTaskText" placeholder="Nueva tarea...">
+      <select id="newTaskTag"><option value="ops">Ops</option><option value="rrhh">RRHH</option><option value="dev">Dev</option></select>
+      <button class="btn-add" onclick="addTask()">+ Agregar</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+<script>
+var LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAIAAAABc2X6AAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAJ5k';
+
+var clients=[];
+var tasks=[
+  {text:'Cubrir vacantes abiertas (RRHH y Rob)',tag:'rrhh',status:'pending'},
+  {text:'Seguimiento Scalater — vacante Abraham Hurtado',tag:'rrhh',status:'pending'},
+  {text:'Planificar reunión del mes',tag:'ops',status:'pending'},
+  {text:'Renovar contratos (Sra. Doris)',tag:'rrhh',status:'pending'},
+  {text:'Actualizar Kipo — contratos, clientes y proyectos',tag:'ops',status:'pending'},
+  {text:'Atender solicitudes de los colaboradores',tag:'rrhh',status:'pending'},
+  {text:'Aplicaciones Upwork: 2 diarias por recurso',tag:'ops',status:'pending'},
+  {text:'Seguimiento y QA a KipoHR',tag:'dev',status:'pending'},
+  {text:'Seguimiento Paletas Morelia',tag:'dev',status:'pending'},
+  {text:'Seguimiento Motorenn Dashboard',tag:'dev',status:'pending'},
+  {text:'Seguimiento Multishop',tag:'dev',status:'pending'},
+  {text:'Seguimiento Programa de Apoyo Psicológico',tag:'rrhh',status:'pending'},
+  {text:'Manejar operaciones y gastos administrativos',tag:'ops',status:'pending'}
+];
+var tagLabels={ops:'Ops',rrhh:'RRHH',dev:'Dev'};
+
+function switchTab(name){
+  var names=['resumen','clientes','upwork','rrhh','tareas'];
+  document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',names[i]===name);});
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='resumen') updateResumen();
+  if(name==='tareas') renderTasks();
+}
+function gv(id){var el=document.getElementById(id);return el?el.value:'';}
+function gs(id){var el=document.getElementById(id);return el?el.options[el.selectedIndex].text:'';}
+function pf(v){var n=parseFloat(v);return isNaN(n)?null:n;}
+function badge(t,type){return '<span class="badge badge-'+type+'">'+t+'</span>';}
+function canalBadge(c){
+  if(c==='upwork') return '<span class="canal-uw">Upwork</span>';
+  if(c==='ref') return '<span class="canal-ref">Referencia</span>';
+  return '<span class="canal-email">Correo</span>';
+}
+function statusBadge(s){
+  if(s==='Cubierta'||s==='Completado'||s==='Realizada'||s==='Atendidas') return badge(s,'ok');
+  if(s==='Entrevistas'||s==='En proceso'||s==='En seguimiento'||s==='Planificada') return badge(s,'warn');
+  if(s==='En pausa'||s==='Pausado'||s==='Inactivo') return badge(s,'bad');
+  return badge(s,'na');
+}
+function toggleAcc(id){
+  var b=document.getElementById(id);
+  var c=document.getElementById('chev-'+id);
+  b.classList.toggle('open');
+  if(c) c.classList.toggle('open');
+}
+
+function renderTasks(){
+  var pending=tasks.filter(function(t){return t.status==='pending';});
+  var progress=tasks.filter(function(t){return t.status==='progress';});
+  var done=tasks.filter(function(t){return t.status==='done';});
+  var html='';
+  if(progress.length){
+    html+='<div class="tasks-group-title g-progress">En progreso ('+progress.length+')</div>';
+    tasks.forEach(function(t,i){if(t.status==='progress') html+=taskHTML(t,i);});
+  }
+  if(pending.length){
+    html+='<div class="tasks-group-title g-pending">Sin empezar ('+pending.length+')</div>';
+    tasks.forEach(function(t,i){if(t.status==='pending') html+=taskHTML(t,i);});
+  }
+  if(done.length){
+    html+='<div class="tasks-group-title g-done">Completadas ('+done.length+')</div>';
+    tasks.forEach(function(t,i){if(t.status==='done') html+=taskHTML(t,i);});
+  }
+  document.getElementById('taskList').innerHTML=html;
+  updateTaskPills();
+}
+function taskHTML(t,i){
+  var cls='task-item'+(t.status==='progress'?' t-progress':t.status==='done'?' t-done':'');
+  return '<div class="'+cls+'">'
+    +'<select class="task-status-sel" onchange="setTaskStatus('+i+',this.value)">'
+    +'<option value="pending"'+(t.status==='pending'?' selected':'')+'>Sin empezar</option>'
+    +'<option value="progress"'+(t.status==='progress'?' selected':'')+'>En progreso</option>'
+    +'<option value="done"'+(t.status==='done'?' selected':'')+'>Completada</option>'
+    +'</select>'
+    +'<span class="task-text'+(t.status==='done'?' done':'')+'">'+t.text+'</span>'
+    +'<span class="task-tag tag-'+t.tag+'">'+tagLabels[t.tag]+'</span>'
+    +'<button class="btn-remove" onclick="removeTask('+i+')">✕</button>'
+    +'</div>';
+}
+function setTaskStatus(i,val){tasks[i].status=val;renderTasks();updateResumen();}
+function removeTask(i){tasks.splice(i,1);renderTasks();updateResumen();}
+function addTask(){
+  var text=document.getElementById('newTaskText').value.trim();
+  var tag=document.getElementById('newTaskTag').value;
+  if(!text) return;
+  tasks.push({text:text,tag:tag,status:'pending'});
+  document.getElementById('newTaskText').value='';
+  renderTasks();updateResumen();
+}
+function updateTaskPills(){
+  var p=tasks.filter(function(t){return t.status==='pending';}).length;
+  var pr=tasks.filter(function(t){return t.status==='progress';}).length;
+  var d=tasks.filter(function(t){return t.status==='done';}).length;
+  var tot=tasks.length;
+  var pct=tot>0?Math.round(d/tot*100):0;
+  ['t-pill-p','h-pill-p'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=p+' sin empezar';});
+  ['t-pill-pr','h-pill-pr'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=pr+' en progreso';});
+  ['t-pill-d','h-pill-d'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=d+' completadas';});
+  var circ=163.4;
+  document.getElementById('ring-done').setAttribute('stroke-dashoffset',circ*(1-d/Math.max(tot,1)));
+  document.getElementById('ring-pct-text').textContent=pct+'%';
+  var abT=badge(d+'/'+tot+' completas',d===tot?'ok':pr>0?'warn':'na');
+  var el=document.getElementById('ab-tareas');if(el) el.innerHTML=abT;
+}
+
+function addClient(){
+  var name=document.getElementById('new-client-name').value.trim();
+  if(!name) return;
+  var canal=document.getElementById('new-client-canal').value;
+  var q=document.getElementById('new-client-q').value;
+  var recurso=document.getElementById('new-client-recurso').value.trim();
+  clients.push({name:name,canal:canal,q:q,recurso:recurso});
+  document.getElementById('new-client-name').value='';
+  document.getElementById('new-client-recurso').value='';
+  renderClientTable();updateResumen();
+}
+function removeClient(i){clients.splice(i,1);renderClientTable();updateResumen();}
+function renderClientTable(){
+  var tbody=document.getElementById('client-tbody');
+  if(clients.length===0){
+    tbody.innerHTML='<tr><td colspan="5" style="color:var(--ci-muted);font-size:11px;text-align:center;padding:12px;">Aún no hay clientes.</td></tr>';
+    document.getElementById('c-upwork-disp').textContent='0';return;
+  }
+  tbody.innerHTML=clients.map(function(c,i){
+    return '<tr><td class="row-label">'+c.name+'</td><td>'+canalBadge(c.canal)+'</td>'
+      +'<td style="color:var(--ci-muted);font-size:11px;">'+c.q+'</td>'
+      +'<td style="color:var(--ci-muted);font-size:11px;">'+(c.canal==='upwork'&&c.recurso?c.recurso:'—')+'</td>'
+      +'<td><button class="btn-remove" onclick="removeClient('+i+')">✕</button></td></tr>';
+  }).join('');
+  document.getElementById('c-upwork-disp').textContent=clients.filter(function(c){return c.canal==='upwork';}).length;
+}
+
+function recalcClientes(){
+  var base=pf(gv('base-clientes'))||29;
+  document.getElementById('c-base-disp').textContent=base;
+  var running=base;
+  ['q1','q2','q3','q4'].forEach(function(q){
+    var nv=pf(gv(q+'-new')),lv=pf(gv(q+'-lost'));
+    if(nv!==null||lv!==null){
+      var n=nv||0,l=lv||0,net=n-l;
+      var pct=running>0?(net/running*100).toFixed(2)+'%':'0.00%';
+      running+=net;
+      document.getElementById(q+'-net').textContent=(net>=0?'+':'')+net;
+      document.getElementById(q+'-pct').textContent=pct;
+    }else{
+      document.getElementById(q+'-net').textContent='—';
+      document.getElementById(q+'-pct').textContent='—';
+    }
+  });
+  var b=pf(gv('base-clientes'))||29;
+  var q1n=pf(gv('q1-new'))||0,q1l=pf(gv('q1-lost'))||0;
+  var q2n=pf(gv('q2-new')),q2l=pf(gv('q2-lost'))||0;
+  var total=b+q1n-q1l+(q2n!==null?q2n-q2l:0);
+  document.getElementById('c-actuales-disp').textContent=total;
+  document.getElementById('c-crec-disp').textContent=b>0?((total-b)/b*100).toFixed(2)+'%':'—';
+  updateResumen();
+}
+
+function evalUpwork(){
+  var cpa=pf(gv('uw-cpa')),conv=pf(gv('uw-conv'));
+  var boosts=pf(gv('uw-boosts')),connects=pf(gv('uw-connects'));
+  var cpe=pf(gv('uw-cpe')),gasto=pf(gv('uw-gasto'));
+  function sb(id,html){document.getElementById(id).innerHTML=html;}
+  if(gasto!==null) sb('ev-gasto',badge('$'+gasto.toFixed(2),'info'));
+  if(cpa!==null) sb('ev-cpa',cpa<=5?badge('OK — $'+cpa.toFixed(2),'ok'):badge('Alta — $'+cpa.toFixed(2),'bad'));
+  if(cpe!==null) sb('ev-cpe',cpe>100?badge('Alta — $'+cpe.toFixed(2),'bad'):cpe>50?badge('Normal — $'+cpe.toFixed(2),'warn'):badge('OK — $'+cpe.toFixed(2),'ok'));
+  if(conv!==null) sb('ev-conv',conv>=10?badge('OK — '+conv+'%','ok'):badge('Normal — '+conv+'%','warn'));
+  if(boosts!==null) sb('ev-boosts',boosts<=30?badge('OK — '+boosts+'%','ok'):badge('Alto — '+boosts+'%','bad'));
+  if(connects!==null) sb('ev-connects',connects>=30&&connects<=50?badge('Aceptable — '+connects,'ok'):connects<30?badge('Bajo — '+connects,'warn'):badge('Alto — '+connects,'bad'));
+  updateResumen();
+}
+
+function updateResumen(){
+  var base=pf(gv('base-clientes'))||29;
+  var q1n=pf(gv('q1-new'))||0,q1l=pf(gv('q1-lost'))||0;
+  var q2n=pf(gv('q2-new')),q2l=pf(gv('q2-lost'))||0;
+  var total=base+q1n-q1l+(q2n!==null?q2n-q2l:0);
+  var neto=total-base;
+  var crec=base>0?(neto/base*100).toFixed(1)+'%':'—';
+  document.getElementById('h-total').textContent=total;
+  document.getElementById('h-base-label').textContent=base;
+  document.getElementById('h-neto').textContent=neto>=0?'+'+neto:neto;
+  document.getElementById('h-pct').textContent=crec;
+  var trend=document.getElementById('h-trend');
+  if(neto>0){trend.textContent='▲ +'+neto+' clientes ('+crec+')';trend.style.background='rgba(57,197,120,.12)';trend.style.color='#39c578';}
+  else if(neto<0){trend.textContent='▼ '+neto+' clientes';trend.style.background='rgba(240,68,56,.12)';trend.style.color='#f04438';}
+  else{trend.textContent='— sin cambios aún';trend.style.background='rgba(143,163,184,.12)';trend.style.color='var(--ci-muted)';}
+
+  var uwC=clients.filter(function(c){return c.canal==='upwork';}).length;
+  var refC=clients.filter(function(c){return c.canal==='ref';}).length;
+  var emC=clients.filter(function(c){return c.canal==='email';}).length;
+  document.getElementById('h-c-uw').textContent=uwC;
+  document.getElementById('h-c-ref').textContent=refC;
+  document.getElementById('h-c-em').textContent=emC;
+
+  var chips=clients.length?clients.map(function(c){
+    var cl=c.canal==='upwork'?'uw':c.canal==='ref'?'ref':'em';
+    return '<span class="chip '+cl+'"><span class="chip-dot"></span>'+c.name+'</span>';
+  }).join(''):'<span style="font-size:11px;color:var(--ci-muted);">Agrega clientes en la tab Clientes →</span>';
+  document.getElementById('h-chips').innerHTML=chips;
+
+  updateTaskPills();
+
+  var gasto=pf(gv('uw-gasto')),cpa=pf(gv('uw-cpa')),cpe=pf(gv('uw-cpe'));
+  var conv=pf(gv('uw-conv')),boosts=pf(gv('uw-boosts')),connects=pf(gv('uw-connects'));
+  document.getElementById('ar-gasto').textContent=gasto!==null?'$'+gasto.toFixed(2):'—';
+  document.getElementById('ar-cpa').innerHTML=cpa!==null?'$'+cpa.toFixed(2)+' '+(cpa<=5?badge('OK','ok'):badge('Alta','bad')):'—';
+  document.getElementById('ar-cpe').innerHTML=cpe!==null?'$'+cpe.toFixed(2)+' '+(cpe>100?badge('Alta','bad'):cpe>50?badge('Normal','warn'):badge('OK','ok')):'—';
+  document.getElementById('ar-conv').innerHTML=conv!==null?conv+'% '+(conv>=10?badge('OK','ok'):badge('Normal','warn')):'—';
+  document.getElementById('ar-boosts').innerHTML=boosts!==null?boosts+'% '+(boosts<=30?badge('OK','ok'):badge('Alto','bad')):'—';
+  document.getElementById('ar-connects').innerHTML=connects!==null?connects+' '+(connects>=30&&connects<=50?badge('Aceptable','ok'):connects<30?badge('Bajo','warn'):badge('Alto','bad')):'—';
+
+  var uwBadges='';
+  if(cpa!==null) uwBadges+=cpa<=5?badge('CPA OK','ok'):badge('CPA Alta','bad');
+  if(conv!==null) uwBadges+=conv>=10?badge('Conv OK','ok'):badge('Conv Normal','warn');
+  document.getElementById('ab-upwork').innerHTML=uwBadges||'<span style="font-size:10px;color:var(--ci-muted);">Sin datos</span>';
+
+  var uwcl=clients.filter(function(c){return c.canal==='upwork';});
+  document.getElementById('ar-uw-clients').innerHTML=uwcl.length
+    ?'<table class="kpi-table"><thead><tr><th>Cliente</th><th>Trimestre</th><th>Recurso</th></tr></thead><tbody>'
+      +uwcl.map(function(c){return '<tr><td class="row-label">'+c.name+'</td><td style="color:var(--ci-muted);font-size:11px;">'+c.q+'</td><td style="color:var(--ci-muted);font-size:11px;">'+(c.recurso||'—')+'</td></tr>';}).join('')
+      +'</tbody></table>'
+    :'<span style="font-size:11px;color:var(--ci-muted);">Sin clientes Upwork aún.</span>';
+
+  document.getElementById('uw-client-list').innerHTML=uwcl.length
+    ?'<table class="kpi-table"><thead><tr><th>Cliente</th><th>Trimestre</th><th>Recurso</th></tr></thead><tbody>'
+      +uwcl.map(function(c){return '<tr><td class="row-label">'+c.name+'</td><td style="color:var(--ci-muted);font-size:11px;">'+c.q+'</td><td style="color:var(--ci-muted);font-size:11px;">'+(c.recurso||'—')+'</td></tr>';}).join('')
+      +'</tbody></table>'
+    :'<span style="font-size:11px;color:var(--ci-muted);">Agrega clientes desde la tab Clientes.</span>';
+
+  document.getElementById('ar-vac-rrhh').innerHTML=statusBadge(gs('vac-rrhh'));
+  document.getElementById('ar-vac-rob').innerHTML=statusBadge(gs('vac-rob'));
+  document.getElementById('ar-vac-scalater').innerHTML=statusBadge(gs('vac-scalater'));
+  document.getElementById('ar-doris').innerHTML=statusBadge(gs('ct-doris'));
+  var k1=gs('ct-kipo1'),k2=gs('ct-kipo2'),k3=gs('ct-kipo3');
+  document.getElementById('ar-kipo').innerHTML=statusBadge(k1==='Completado'&&k2==='Completado'&&k3==='Completado'?'Completado':k1!=='Pendiente'||k2!=='Pendiente'||k3!=='Pendiente'?'En proceso':'Pendiente');
+  document.getElementById('ar-pap').innerHTML=statusBadge(gs('pap-estado'));
+  document.getElementById('ar-sesiones').textContent=gv('pap-sesiones')||'—';
+  document.getElementById('ar-solicitudes').textContent=gv('rrhh-solicitudes')||'—';
+
+  var vacOpen=['vac-rrhh','vac-rob','vac-scalater'].filter(function(id){return gs(id)!=='Cubierta';}).length;
+  document.getElementById('ab-rrhh').innerHTML=vacOpen>0?badge(vacOpen+' vacante'+(vacOpen>1?'s':''),'warn'):badge('Todo cubierto','ok');
+
+  var d=tasks.filter(function(t){return t.status==='done';}).length;
+  var pr=tasks.filter(function(t){return t.status==='progress';}).length;
+  var tot=tasks.length;
+  var colors={progress:'#f5a623',pending:'var(--ci-muted)',done:'#39c578'};
+  var thtml='';
+  ['progress','pending','done'].forEach(function(s){
+    var arr=tasks.filter(function(t){return t.status===s;});
+    if(!arr.length) return;
+    var label=s==='progress'?'En progreso':s==='pending'?'Sin empezar':'Completadas';
+    thtml+='<div style="font-size:10px;color:'+colors[s]+';text-transform:uppercase;letter-spacing:.06em;padding:6px 0 4px;">'+label+' ('+arr.length+')</div>';
+    arr.forEach(function(t){
+      thtml+='<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.03);">'
+        +'<span style="font-size:11px;color:'+(s==='done'?'var(--ci-muted)':'var(--ci-text)')+';text-decoration:'+(s==='done'?'line-through':'none')+';">'+t.text+'</span>'
+        +'<span class="task-tag tag-'+t.tag+'">'+tagLabels[t.tag]+'</span></div>';
+    });
+  });
+  document.getElementById('ar-tasks-detail').innerHTML=thtml||'<span style="font-size:11px;color:var(--ci-muted);">Sin tareas.</span>';
+}
+
+renderTasks();
+updateResumen();
+</script>
+</body>
+</html>
